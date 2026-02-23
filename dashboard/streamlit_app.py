@@ -6,7 +6,7 @@ import plotly.graph_objects as go
 import streamlit as st
 from plotly.subplots import make_subplots
 
-from dashboard.assets import STOCKS, CRYPTO, FOREX
+from dashboard.assets import STOCKS, STOCKS_BY_REGION, CRYPTO, FOREX
 from src.service import analyze_asset, predict_asset
 
 
@@ -122,7 +122,8 @@ def main():
     asset_type = st.sidebar.radio("Asset Class", ["Stocks", "Crypto", "Forex", "Custom"])
     
     if asset_type == "Stocks":
-        asset = st.sidebar.selectbox("Select Asset", STOCKS, index=0)
+        region = st.sidebar.selectbox("Select Region/Country", list(STOCKS_BY_REGION.keys()))
+        asset = st.sidebar.selectbox("Select Asset", STOCKS_BY_REGION[region], index=0)
     elif asset_type == "Crypto":
         asset = st.sidebar.selectbox("Select Pair", CRYPTO, index=0)
     elif asset_type == "Forex":
