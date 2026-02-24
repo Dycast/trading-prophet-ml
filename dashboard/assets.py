@@ -6,8 +6,14 @@ STOCKS_BY_REGION = {
     "🇺🇸 USA (Finance & Consumer)": ["JPM", "BAC", "V", "MA", "WMT", "KO", "DIS", "MCD", "PG", "GS"],
     "🇺🇸 USA (Energy & Ind.)": ["XOM", "CVX", "GE", "HON", "CAT", "BA", "MMM", "LMT", "COP", "MPC"],
     "🇺🇸 USA (ETFs)": ["SPY", "QQQ", "DIA", "IWM", "GLD", "SLV", "USO", "UNG", "TLT", "IEF"],
-    "🇪🇺 Europe": ["ASML.AS", "SAP.DE", "MC.PA", "RYA.L", "AZN.L", "SHELL.L", "BP.L", "NESN.SW", "NOVN.SW", "SIE.DE"],
-    "🌏 Asia": ["700.HK", "9988.HK", "1211.HK", "SONY", "TM", "HSBC", "HDB", "INFY", "6758.T", "9984.T"],
+    "🇬🇧 UK": ["HSBC", "RYA.L", "AZN.L", "SHELL.L", "BP.L", "GSK.L"],
+    "🇩🇪 Germany": ["SAP.DE", "SIE.DE", "BMW.DE", "VOW3.DE", "DBK.DE"],
+    "🇫🇷 France": ["MC.PA", "OR.PA", "RMS.PA", "TTE.PA"],
+    "🇳🇱 Netherlands": ["ASML.AS", "ADYEN.AS", "PRX.AS"],
+    "🇨🇭 Switzerland": ["NESN.SW", "NOVN.SW", "ROG.SW"],
+    "🇯🇵 Japan": ["SONY", "TM", "6758.T", "9984.T", "7203.T"],
+    "🇭🇰 Hong Kong": ["700.HK", "9988.HK", "1211.HK", "3690.HK"],
+    "🇮🇳 India": ["HDB", "INFY", "RELIANCE.NS", "TCS.NS"],
     "🇨🇦 Canada": ["SHOP", "RY", "TD", "ENB", "CNR", "CP", "BN", "BNS", "CNQ", "BMO"],
     "🇦🇺 Australia": ["BHP.AX", "CBA.AX", "CSL.AX", "NAB.AX", "WBC.AX", "ANZ.AX", "FMG.AX", "WOW.AX", "TLS.AX", "RIO.AX"]
 }
@@ -25,7 +31,18 @@ CRYPTO = [
     "MKR/USDT", "COMP/USDT", "SNX/USDT", "ZEC/USDT", "WAVES/USDT", "BAT/USDT", "ZIL/USDT", "ONE/USDT"
 ]
 
-# Forex Pairs (Example)
-FOREX = [
-    "EURUSD=X", "JPY=X", "GBPUSD=X", "AUDUSD=X", "NZDUSD=X", "EURJPY=X", "GBPJPY=X", "EURGBP=X", "EURCHF=X"
-]
+# Forex Pairs (Display Name mapped to Symbol)
+FOREX_DISPLAY = {
+    "🇪🇺/🇺🇸 EUR/USD": "EURUSD=X",
+    "🇺🇸/🇯🇵 USD/JPY": "JPY=X",
+    "🇬🇧/🇺🇸 GBP/USD": "GBPUSD=X",
+    "🇦🇺/🇺🇸 AUD/USD": "AUDUSD=X",
+    "🇳🇿/🇺🇸 NZD/USD": "NZDUSD=X",
+    "🇪🇺/🇯🇵 EUR/JPY": "EURJPY=X",
+    "🇬🇧/🇯🇵 GBP/JPY": "GBPJPY=X",
+    "🇪🇺/🇬🇧 EUR/GBP": "EURGBP=X",
+    "🇪🇺/🇨🇭 EUR/CHF": "EURCHF=X"
+}
+
+# Simple list for compatibility
+FOREX = list(FOREX_DISPLAY.values())

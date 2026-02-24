@@ -6,7 +6,7 @@ import plotly.graph_objects as go
 import streamlit as st
 from plotly.subplots import make_subplots
 
-from dashboard.assets import STOCKS, STOCKS_BY_REGION, CRYPTO, FOREX
+from dashboard.assets import STOCKS, STOCKS_BY_REGION, CRYPTO, FOREX, FOREX_DISPLAY
 from src.service import analyze_asset, predict_asset
 
 
@@ -127,7 +127,8 @@ def main():
     elif asset_type == "Crypto":
         asset = st.sidebar.selectbox("Select Pair", CRYPTO, index=0)
     elif asset_type == "Forex":
-        asset = st.sidebar.selectbox("Select Pair", FOREX, index=0)
+        display_name = st.sidebar.selectbox("Select Pair", list(FOREX_DISPLAY.keys()), index=0)
+        asset = FOREX_DISPLAY[display_name]
     else:  # Custom
         asset = st.sidebar.text_input("Asset Symbol (yfinance/ccxt)", "NVDA")
 

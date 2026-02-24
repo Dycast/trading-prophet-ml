@@ -15,10 +15,10 @@ Trading Prophet ML is a research-grade stock and cryptocurrency prediction syste
 - Streamlit dashboard and FastAPI endpoints
 
 ## Supported Assets
-- Stocks: AAPL, GOOGL, TSLA, MSFT, etc.
-- Crypto: BTC, ETH, ADA, SOL, etc.
-- Indices: S&P 500, NASDAQ
-- Custom tickers and exchanges supported via configuration
+- 🇺🇸 **Stocks**: AAPL, GOOGL, TSLA, MSFT, etc. (USA, UK, Germany, France, etc. supported)
+- ₿ **Crypto**: BTC, ETH, ADA, SOL, etc.
+- 📉 **Indices**: S&P 500 (^GSPC), NASDAQ (^IXIC)
+- 💱 **Forex**: EUR/USD, USD/JPY, GBP/USD, etc.
 
 ## Prediction Models
 - Baseline: Linear Regression, Random Forest, XGBoost, SVR
