@@ -119,18 +119,36 @@ def main():
 
     st.sidebar.markdown("### ⚙️ Asset Configuration")
     
-    asset_type = st.sidebar.radio("Asset Class", ["Stocks", "Crypto", "Forex", "Custom"])
+    asset_type_raw = st.sidebar.radio("Asset Class", ["📈 Stocks", "🪙 Crypto", "💱 Forex", "🛠️ Custom"])
+    asset_type = asset_type_raw.split(" ")[-1]
     
     if asset_type == "Stocks":
-        region = st.sidebar.selectbox("Select Region/Country", list(STOCKS_BY_REGION.keys()))
-        asset = st.sidebar.selectbox("Select Asset", STOCKS_BY_REGION[region], index=0)
+        region_options = list(STOCKS_BY_REGION.keys())
+        region = st.sidebar.selectbox("Select Region/Country", region_options)
+        
+        # Extract flag emoji from region string (e.g., "🇺🇸 USA (Tech)" -> "🇺🇸")
+        import re
+        flag_match = re.match(r'^(\S+)', region)
+        flag = flag_match.group(1) if flag_match else "🏳️"
+        
+        # Display assets with flags in the dropdown
+        stock_options = [f"{flag} {s}" for s in STOCKS_BY_REGION[region]]
+        selected_stock_label = st.sidebar.selectbox("Select Asset", stock_options, index=0)
+        # Extract the actual symbol (last part after space)
+        asset = selected_stock_label.split(" ")[-1]
+        
     elif asset_type == "Crypto":
-        asset = st.sidebar.selectbox("Select Pair", CRYPTO, index=0)
+        asset = st.sidebar.selectbox("Select Pair", [f"🪙 {c}" for c in CRYPTO], index=0)
+        asset = asset.split(" ")[-1]
     elif asset_type == "Forex":
         display_name = st.sidebar.selectbox("Select Pair", list(FOREX_DISPLAY.keys()), index=0)
         asset = FOREX_DISPLAY[display_name]
     else:  # Custom
-        asset = st.sidebar.text_input("Asset Symbol (yfinance/ccxt)", "NVDA")
+        asset_input = st.sidebar.text_input("Asset Symbol (yfinance/ccxt)", "NVDA")
+        asset = asset_input.strip().upper()
+        # If user typed something like "🇺🇸 TSLA", try to split it
+        if " " in asset:
+            asset = asset.split(" ")[-1]
 
     col1, col2 = st.sidebar.columns(2)
     with col1:
@@ -170,8 +188,25 @@ def main():
         </div>
         """
 
+    # Determine the display flag for the current asset for consistency in headers
+    display_flag = "🔍"
+    if asset_type == "Stocks":
+        # 'region' is already available from the sidebar
+        import re
+        flag_match = re.match(r'^(\S+)', region)
+        display_flag = flag_match.group(1) if flag_match else "🏳️"
+    elif asset_type == "Crypto":
+        display_flag = "🪙"
+    elif asset_type == "Forex":
+        # 'display_name' is already available from the sidebar
+        import re
+        flag_match = re.match(r'^(\S+)', display_name)
+        display_flag = flag_match.group(1) if flag_match else "💱"
+    else:
+        display_flag = "🔍"
+
     if st.sidebar.button("Run Analysis", type="primary", use_container_width=True):
-        with st.spinner(f"Fetching data and analyzing {asset}..."):
+        with st.spinner(f"Fetching data and analyzing {display_flag} {asset}..."):
             analysis = cached_analysis(asset, timeframe, period)
             prediction = cached_prediction(asset, timeframe, period)
 
@@ -184,6 +219,7 @@ def main():
             return
 
         # Main Dashboard Layout
+        st.markdown(f"## {display_flag} {asset} Analysis & Forecast")
         
         # 1. Key Metrics Row
         if "history" in analysis:
@@ -262,7 +298,7 @@ def main():
                 total = sum(row_heights)
                 row_heights = [h/total for h in row_heights]
 
-                subplot_titles = [f'{asset} Price ({start_date} - {end_date})']
+                subplot_titles = [f'{display_flag} {asset} Price ({start_date} - {end_date})']
                 if show_volume: subplot_titles.append('Volume')
                 if show_rsi: subplot_titles.append('RSI (14)')
                 if show_macd: subplot_titles.append('MACD')
@@ -332,7 +368,7 @@ def main():
                 st.warning("No historical data available for plotting.")
 
         with tab2:
-            st.markdown("### 🤖 AI Prediction & Analysis")
+            st.markdown(f"### {display_flag} AI Prediction & Analysis")
             
             # 1. Main Findings / Narrative
             if "findings" in prediction:
@@ -411,9 +447,24 @@ def main():
     else:
         # Placeholder or Landing Page
         st.info("👈 Select an asset from the sidebar and click **Run Analysis** to start.")
-        st.markdown("### Supported Assets")
-        st.markdown(f"**Stocks:** {', '.join(STOCKS[:10])}...")
-        st.markdown(f"**Crypto:** {', '.join(CRYPTO[:10])}...")
+        st.markdown("### 🌎 Global Asset Coverage")
+        
+        c1, c2 = st.columns(2)
+        with c1:
+            st.markdown("#### 🇺🇸 🇬🇧 🇩🇪 Stocks")
+            # Show a few examples with flags
+            examples = []
+            for r, s_list in list(STOCKS_BY_REGION.items())[:5]:
+                f = r.split(' ')[0]
+                examples.append(f"{f} {s_list[0]}")
+            st.write(", ".join(examples) + " ...")
+            
+        with c2:
+            st.markdown("#### 🪙 Cryptocurrencies")
+            st.write(", ".join([f"🪙 {c}" for c in CRYPTO[:5]]) + " ...")
+            
+        st.markdown("#### 💱 Forex Pairs")
+        st.write(", ".join(list(FOREX_DISPLAY.keys())[:5]) + " ...")
 
 if __name__ == "__main__":
     main()
