@@ -1,6 +1,8 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""Asset lists with flag emojis for Trading Prophet ML dashboard."""
 
-# Common Stocks
-# Stocks Categorized by Region/Country
+# Stocks Categorized by Region/Country with Flag Emojis
 STOCKS_BY_REGION = {
     "🇺🇸 USA (Tech)": ["AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "META", "NVDA", "NFLX", "AMD", "INTC"],
     "🇺🇸 USA (Finance & Consumer)": ["JPM", "BAC", "V", "MA", "WMT", "KO", "DIS", "MCD", "PG", "GS"],
@@ -15,23 +17,21 @@ STOCKS_BY_REGION = {
     "🇭🇰 Hong Kong": ["700.HK", "9988.HK", "1211.HK", "3690.HK"],
     "🇮🇳 India": ["HDB", "INFY", "RELIANCE.NS", "TCS.NS"],
     "🇨🇦 Canada": ["SHOP", "RY", "TD", "ENB", "CNR", "CP", "BN", "BNS", "CNQ", "BMO"],
-    "🇦🇺 Australia": ["BHP.AX", "CBA.AX", "CSL.AX", "NAB.AX", "WBC.AX", "ANZ.AX", "FMG.AX", "WOW.AX", "TLS.AX", "RIO.AX"]
+    "🇦🇺 Australia": ["BHP.AX", "CBA.AX", "CSL.AX", "NAB.AX", "WBC.AX", "ANZ.AX", "FMG.AX", "WOW.AX", "TLS.AX", "RIO.AX"],
 }
 
-# Maintain a flat list for backward compatibility or simple lookups if needed
+# Flat list for backward compatibility
 STOCKS = [stock for region in STOCKS_BY_REGION.values() for stock in region]
 
-# Common Cryptocurrencies (Binance Pair Format)
+# Cryptocurrencies (Binance format)
 CRYPTO = [
     "BTC/USDT", "ETH/USDT", "BNB/USDT", "XRP/USDT", "ADA/USDT", "DOGE/USDT", "SOL/USDT", "MATIC/USDT",
     "DOT/USDT", "LTC/USDT", "TRX/USDT", "SHIB/USDT", "AVAX/USDT", "UNI/USDT", "ATOM/USDT", "LINK/USDT",
     "XMR/USDT", "ETC/USDT", "XLM/USDT", "BCH/USDT", "ALGO/USDT", "FIL/USDT", "NEAR/USDT", "VET/USDT",
     "ICP/USDT", "EOS/USDT", "SAND/USDT", "AAVE/USDT", "THETA/USDT", "MANA/USDT", "AXS/USDT", "FTM/USDT",
-    "XTZ/USDT", "EGLD/USDT", "HBAR/USDT", "ZQS/USDT", "KCS/USDT", "NEO/USDT", "IOTA/USDT", "DASH/USDT",
-    "MKR/USDT", "COMP/USDT", "SNX/USDT", "ZEC/USDT", "WAVES/USDT", "BAT/USDT", "ZIL/USDT", "ONE/USDT"
 ]
 
-# Forex Pairs (Display Name mapped to Symbol)
+# Forex Pairs with Flag Emojis
 FOREX_DISPLAY = {
     "🇪🇺/🇺🇸 EUR/USD": "EURUSD=X",
     "🇺🇸/🇯🇵 USD/JPY": "JPY=X",
@@ -41,8 +41,7 @@ FOREX_DISPLAY = {
     "🇪🇺/🇯🇵 EUR/JPY": "EURJPY=X",
     "🇬🇧/🇯🇵 GBP/JPY": "GBPJPY=X",
     "🇪🇺/🇬🇧 EUR/GBP": "EURGBP=X",
-    "🇪🇺/🇨🇭 EUR/CHF": "EURCHF=X"
+    "🇪🇺/🇨🇭 EUR/CHF": "EURCHF=X",
 }
 
-# Simple list for compatibility
 FOREX = list(FOREX_DISPLAY.values())
