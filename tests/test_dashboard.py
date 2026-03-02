@@ -1,55 +1,38 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Test dashboard assets and components."""
+"""Test dashboard assets."""
 from dashboard.assets import STOCKS_BY_REGION, CRYPTO, FOREX_DISPLAY
-from dashboard.components import extract_flag, extract_symbol_from_display
-
-
-def test_flag_extraction():
-    """Test that flags extract correctly."""
-    assert extract_flag("🇺🇸 USA (Tech)") == "🇺🇸"
-    assert extract_flag("🪙 BTC/USDT") == "🪙"
-    assert extract_flag("🇬🇧 UK") == "🇬🇧"
-    print("✓ Flag extraction works")
-
-
-def test_symbol_extraction():
-    """Test that symbols extract correctly from display text."""
-    assert extract_symbol_from_display("🇺🇸 AAPL") == "AAPL"
-    assert extract_symbol_from_display("🪙 BTC/USDT") == "BTC/USDT"
-    print("✓ Symbol extraction works")
 
 
 def test_stock_regions():
-    """Test that stock regions have flags."""
-    regions = list(STOCKS_BY_REGION.keys())
-    assert len(regions) > 0
-    for region in regions:
-        flag = extract_flag(region)
-        assert flag != "🔍", f"Region '{region}' has no flag"
-    print(f"✓ All {len(regions)} stock regions have flags")
+    """Test that stock regions are loaded correctly."""
+    assert len(STOCKS_BY_REGION) > 0, "Should have stock regions"
+    for region, stocks in STOCKS_BY_REGION.items():
+        assert isinstance(region, str), "Region should be string"
+        assert isinstance(stocks, list), "Stocks should be list"
+        assert len(stocks) > 0, f"Region '{region}' should have stocks"
+    print(f"✓ {len(STOCKS_BY_REGION)} stock regions loaded")
 
 
 def test_crypto_list():
-    """Test crypto list."""
-    assert len(CRYPTO) > 0
+    """Test that crypto list is loaded."""
+    assert len(CRYPTO) > 0, "Should have crypto pairs"
+    assert all("/" in c for c in CRYPTO), "Crypto should be in PAIR/USDT format"
     print(f"✓ {len(CRYPTO)} crypto pairs available")
 
 
 def test_forex_display():
-    """Test forex pairs with flags."""
-    pairs = list(FOREX_DISPLAY.keys())
-    assert len(pairs) > 0
-    for pair in pairs:
-        flag = extract_flag(pair)
-        assert flag != "🔍", f"Pair '{pair}' has no flag"
-    print(f"✓ All {len(pairs)} forex pairs have flags")
+    """Test that forex pairs are loaded."""
+    assert len(FOREX_DISPLAY) > 0, "Should have forex pairs"
+    for display_name, symbol in FOREX_DISPLAY.items():
+        assert isinstance(display_name, str), "Display name should be string"
+        assert isinstance(symbol, str), "Symbol should be string"
+    print(f"✓ {len(FOREX_DISPLAY)} forex pairs loaded")
 
 
 if __name__ == "__main__":
-    test_flag_extraction()
-    test_symbol_extraction()
     test_stock_regions()
     test_crypto_list()
     test_forex_display()
-    print("\n✅ All dashboard component tests passed!")
+    print("\n✅ All dashboard tests passed!")
+

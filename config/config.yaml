@@ -7,6 +7,11 @@ data:
   timeframes: [1m, 5m, 15m, 1h, 4h, 1d]
   cache_dir: data
   max_lookback_days: 3650
+  max_cache_age_seconds: 60
+  force_refresh: true
+
+dashboard:
+  cache_ttl_seconds: 30
 
 api_keys:
   alpha_vantage: ${ALPHA_VANTAGE_API_KEY}

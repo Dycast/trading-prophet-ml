@@ -18,6 +18,7 @@ from .patterns.pattern_detector import detect_patterns
 from .signals.signal_generator import generate_signals
 from .backtesting.backtester import run_backtest
 from .backtesting.performance_metrics import annualized_return, max_drawdown, sharpe_ratio, total_return
+from .news import fetch_latest_news
 
 logger = logging.getLogger(__name__)
 
@@ -26,11 +27,24 @@ def _is_crypto(asset: str) -> bool:
     return "/" in asset
 
 
-def run_quick_analysis(asset: str, timeframe: str = "1d", period: str = "1y") -> dict[str, Any]:
+def run_quick_analysis(
+    asset: str,
+    timeframe: str = "1d",
+    period: str = "1y",
+    *,
+    force_refresh: bool | None = None,
+    max_cache_age_seconds: int | None = None,
+) -> dict[str, Any]:
     """Run a minimal pipeline: fetch -> features -> patterns -> signals -> backtest."""
     config = load_yaml(Path("config") / "config.yaml")
     fetcher = DataFetcher()
     manager = DataManager(config.get("data", {}).get("cache_dir", "data"))
+    data_cfg = config.get("data", {})
+
+    if force_refresh is None:
+        force_refresh = bool(data_cfg.get("force_refresh", True))
+    if max_cache_age_seconds is None:
+        max_cache_age_seconds = data_cfg.get("max_cache_age_seconds", 60)
 
     cache_key = f"{asset}-{timeframe}-{period}"
 
@@ -40,7 +54,12 @@ def run_quick_analysis(asset: str, timeframe: str = "1d", period: str = "1y") ->
             return fetcher.fetch_ccxt(exchange, asset, timeframe)
         return fetcher.fetch_yfinance(asset, interval=timeframe, period=period)
 
-    df = manager.get_or_fetch(cache_key, _fetch)
+    df = manager.get_or_fetch(
+        cache_key,
+        _fetch,
+        max_age_seconds=max_cache_age_seconds,
+        force_refresh=force_refresh,
+    )
     df = adjust_for_splits_dividends(df)
     df = handle_missing(df)
 
@@ -68,11 +87,23 @@ def run_quick_analysis(asset: str, timeframe: str = "1d", period: str = "1y") ->
     df.tail(200).to_csv(results_dir / f"signals_{asset.replace('/', '-')}_{stamp}.csv")
     bt.trades.to_csv(results_dir / f"trades_{asset.replace('/', '-')}_{stamp}.csv", index=False)
 
+    latest_timestamp = None
+    if not df.empty:
+        idx = df.index[-1]
+        try:
+            latest_timestamp = pd.to_datetime(idx, utc=True).isoformat()
+        except Exception:  # noqa: BLE001
+            latest_timestamp = str(idx)
+
+    latest_news = fetch_latest_news(asset)
+
     return {
         "asset": asset,
         "timeframe": timeframe,
         "rows": len(df),
         "history": df.reset_index().to_dict(orient="records"),
         "metrics": metrics,
+        "data_last_updated": latest_timestamp,
+        "latest_news": latest_news,
         "disclaimer": "Not financial advice.",
     }

@@ -62,6 +62,8 @@ def predict(req: PredictRequest) -> dict:
         "confidence": pred["confidence"],
         "method": pred["method"],
         "findings": pred["findings"],
+        "data_last_updated": pred.get("data_last_updated"),
+        "latest_news": pred.get("latest_news", []),
     }
 
 
@@ -73,6 +75,8 @@ def analyze(req: PredictRequest) -> dict:
         "asset": req.asset,
         "timeframe": req.timeframe,
         "analysis": analysis,
+        "data_last_updated": analysis.get("data_last_updated"),
+        "latest_news": analysis.get("latest_news", []),
     }
 
 

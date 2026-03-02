@@ -1,13 +1,20 @@
 """Streamlit dashboard for Trading Prophet ML."""
 from __future__ import annotations
 
+from pathlib import Path
+
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 from plotly.subplots import make_subplots
 
 from dashboard.assets import STOCKS, STOCKS_BY_REGION, CRYPTO, FOREX, FOREX_DISPLAY
+from src.config_loader import load_yaml
 from src.service import analyze_asset, predict_asset
+
+
+_APP_CONFIG = load_yaml(Path("config") / "config.yaml")
+_DASH_CACHE_TTL = int(_APP_CONFIG.get("dashboard", {}).get("cache_ttl_seconds", 30))
 
 
 # Custom layout configuration
@@ -19,7 +26,7 @@ st.set_page_config(
 )
 
 
-@st.cache_data(ttl=300)
+@st.cache_data(ttl=_DASH_CACHE_TTL)
 def cached_analysis(asset: str, timeframe: str, period: str) -> dict:
     try:
         return analyze_asset(asset, timeframe, period)
@@ -27,7 +34,7 @@ def cached_analysis(asset: str, timeframe: str, period: str) -> dict:
         return {"error": str(e)}
 
 
-@st.cache_data(ttl=300)
+@st.cache_data(ttl=_DASH_CACHE_TTL)
 def cached_prediction(asset: str, timeframe: str, period: str) -> dict:
     try:
         return predict_asset(asset, timeframe, period)
@@ -126,29 +133,17 @@ def main():
         region_options = list(STOCKS_BY_REGION.keys())
         region = st.sidebar.selectbox("Select Region/Country", region_options)
         
-        # Extract flag emoji from region string (e.g., "🇺🇸 USA (Tech)" -> "🇺🇸")
-        import re
-        flag_match = re.match(r'^(\S+)', region)
-        flag = flag_match.group(1) if flag_match else "🏳️"
-        
-        # Display assets with flags in the dropdown
-        stock_options = [f"{flag} {s}" for s in STOCKS_BY_REGION[region]]
-        selected_stock_label = st.sidebar.selectbox("Select Asset", stock_options, index=0)
-        # Extract the actual symbol (last part after space)
-        asset = selected_stock_label.split(" ")[-1]
+        # Simple stock selection without flags
+        asset = st.sidebar.selectbox("Select Asset", STOCKS_BY_REGION[region], index=0)
         
     elif asset_type == "Crypto":
-        asset = st.sidebar.selectbox("Select Pair", [f"🪙 {c}" for c in CRYPTO], index=0)
-        asset = asset.split(" ")[-1]
+        asset = st.sidebar.selectbox("Select Pair", CRYPTO, index=0)
     elif asset_type == "Forex":
         display_name = st.sidebar.selectbox("Select Pair", list(FOREX_DISPLAY.keys()), index=0)
         asset = FOREX_DISPLAY[display_name]
     else:  # Custom
         asset_input = st.sidebar.text_input("Asset Symbol (yfinance/ccxt)", "NVDA")
         asset = asset_input.strip().upper()
-        # If user typed something like "🇺🇸 TSLA", try to split it
-        if " " in asset:
-            asset = asset.split(" ")[-1]
 
     col1, col2 = st.sidebar.columns(2)
     with col1:
@@ -188,25 +183,8 @@ def main():
         </div>
         """
 
-    # Determine the display flag for the current asset for consistency in headers
-    display_flag = "🔍"
-    if asset_type == "Stocks":
-        # 'region' is already available from the sidebar
-        import re
-        flag_match = re.match(r'^(\S+)', region)
-        display_flag = flag_match.group(1) if flag_match else "🏳️"
-    elif asset_type == "Crypto":
-        display_flag = "🪙"
-    elif asset_type == "Forex":
-        # 'display_name' is already available from the sidebar
-        import re
-        flag_match = re.match(r'^(\S+)', display_name)
-        display_flag = flag_match.group(1) if flag_match else "💱"
-    else:
-        display_flag = "🔍"
-
     if st.sidebar.button("Run Analysis", type="primary", use_container_width=True):
-        with st.spinner(f"Fetching data and analyzing {display_flag} {asset}..."):
+        with st.spinner(f"Fetching data and analyzing {asset}..."):
             analysis = cached_analysis(asset, timeframe, period)
             prediction = cached_prediction(asset, timeframe, period)
 
@@ -219,7 +197,7 @@ def main():
             return
 
         # Main Dashboard Layout
-        st.markdown(f"## {display_flag} {asset} Analysis & Forecast")
+        st.markdown(f"## {asset} Analysis & Forecast")
         
         # 1. Key Metrics Row
         if "history" in analysis:
@@ -273,7 +251,7 @@ def main():
         st.markdown("---")
 
         # 2. Tabs for Charts & Details
-        tab1, tab2, tab3 = st.tabs(["📊 Interactive Chart", "🧠 Analysis & Forecast", "📋 Raw Data"])
+        tab1, tab2, tab3, tab4 = st.tabs(["📊 Interactive Chart", "🧠 Analysis & Forecast", "📋 Raw Data", "📰 Latest News"])
 
         with tab1:
             if "history" in analysis and not df.empty:
@@ -298,7 +276,7 @@ def main():
                 total = sum(row_heights)
                 row_heights = [h/total for h in row_heights]
 
-                subplot_titles = [f'{display_flag} {asset} Price ({start_date} - {end_date})']
+                subplot_titles = [f'{asset} Price ({start_date} - {end_date})']
                 if show_volume: subplot_titles.append('Volume')
                 if show_rsi: subplot_titles.append('RSI (14)')
                 if show_macd: subplot_titles.append('MACD')
@@ -368,7 +346,11 @@ def main():
                 st.warning("No historical data available for plotting.")
 
         with tab2:
-            st.markdown(f"### {display_flag} AI Prediction & Analysis")
+            st.markdown(f"### AI Prediction & Analysis: {asset}")
+
+            latest_data_ts = prediction.get("data_last_updated") or analysis.get("data_last_updated")
+            if latest_data_ts:
+                st.caption(f"Latest market data timestamp (UTC): {latest_data_ts}")
             
             # 1. Main Findings / Narrative
             if "findings" in prediction:
@@ -444,6 +426,23 @@ def main():
         with tab3:
             st.dataframe(df if "history" in analysis else pd.DataFrame())
 
+        with tab4:
+            news_items = analysis.get("latest_news") or prediction.get("latest_news") or []
+            if news_items:
+                st.caption("Latest headlines are pulled at analysis time from live feeds.")
+                for item in news_items:
+                    title = item.get("title", "Untitled")
+                    source = item.get("source", "Unknown source")
+                    published_at = item.get("published_at", "")
+                    url = item.get("url", "")
+                    st.markdown(f"- **{source}** ({published_at})  ")
+                    if url:
+                        st.markdown(f"  [{title}]({url})")
+                    else:
+                        st.write(f"  {title}")
+            else:
+                st.info("No recent news found for this asset right now.")
+
     else:
         # Placeholder or Landing Page
         st.info("👈 Select an asset from the sidebar and click **Run Analysis** to start.")
@@ -451,12 +450,10 @@ def main():
         
         c1, c2 = st.columns(2)
         with c1:
-            st.markdown("#### 🇺🇸 🇬🇧 🇩🇪 Stocks")
-            # Show a few examples with flags
+            st.markdown("#### Stocks")
             examples = []
             for r, s_list in list(STOCKS_BY_REGION.items())[:5]:
-                f = r.split(' ')[0]
-                examples.append(f"{f} {s_list[0]}")
+                examples.append(f"{r}: {s_list[0]}")
             st.write(", ".join(examples) + " ...")
             
         with c2:
