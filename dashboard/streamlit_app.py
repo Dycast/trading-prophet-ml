@@ -84,9 +84,16 @@ def main():
     # Inject Dynamic CSS
     st.markdown(f"""
     <style>
+        /* Smooth fade-in animation */
+        @keyframes fadeIn {{
+            from {{ opacity: 0; transform: translateY(20px); }}
+            to {{ opacity: 1; transform: translateY(0); }}
+        }}
+        
         .stApp {{
             background-color: {bg_color};
             color: {text_color};
+            animation: fadeIn 0.5s ease-out;
         }}
         .main-header {{
             font-family: 'Helvetica Neue', sans-serif;
@@ -97,6 +104,7 @@ def main():
             -webkit-text-fill-color: transparent;
             text-align: center;
             margin-bottom: 2rem;
+            animation: fadeIn 0.8s ease-out;
         }}
         .metric-card {{
             background-color: {card_bg};
@@ -104,19 +112,64 @@ def main():
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             text-align: center;
-            transition: transform 0.2s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: center;
         }}
         .metric-card:hover {{
-            transform: translateY(-5px);
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
         }}
         .metric-value {{
             font-size: 2rem;
             font-weight: bold;
             color: {metric_value_color};
+            transition: color 0.3s ease, transform 0.2s ease;
+        }}
+        .metric-card:hover .metric-value {{
+            transform: scale(1.05);
         }}
         .metric-label {{
             font-size: 0.9rem;
             color: {metric_label};
+            transition: color 0.3s ease;
+        }}
+        /* Smooth button transitions */
+        .stButton > button {{
+            transition: all 0.3s ease !important;
+        }}
+        .stButton > button:hover {{
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }}
+        /* Smooth sidebar transitions */
+        section[data-testid="stSidebar"] {{
+            transition: all 0.3s ease;
+        }}
+        /* Smooth tab transitions */
+        .stTabs [data-baseweb="tab-list"] {{
+            gap: 8px;
+        }}
+        .stTabs [data-baseweb="tab"] {{
+            transition: all 0.3s ease;
+        }}
+        .stTabs [data-baseweb="tab"]:hover {{
+            transform: translateY(-2px);
+        }}
+        /* Smooth plotly chart animation */
+        .js-plotly-plot {{
+            animation: fadeIn 0.6s ease-out;
+        }}
+        /* Smooth dataframe transitions */
+        .stDataFrame {{
+            animation: fadeIn 0.5s ease-out;
+        }}
+        /* Smooth info/warning/error boxes */
+        .stAlert {{
+            animation: fadeIn 0.4s ease-out;
+            transition: all 0.3s ease;
+        }}
+        .stAlert:hover {{
+            transform: translateX(5px);
         }}
         /* Hide Streamlit branding */
         #MainMenu {{visibility: hidden;}}
@@ -289,47 +342,112 @@ def main():
                     row_heights=row_heights
                 )
 
-                # 1. Candlestick (Main Chart)
+                # 1. Candlestick (Main Chart) with smooth animations
                 fig.add_trace(go.Candlestick(
                     x=x_data,
                     open=df['open'], high=df['high'], low=df['low'], close=df['close'],
-                    name='OHLC'
+                    name='OHLC',
+                    increasing_line_color='#00FF88',
+                    decreasing_line_color='#FF4444',
+                    hoverinfo='x+y'
                 ), row=1, col=1)
 
-                # Overlays
+                # Overlays with smooth line rendering
                 if show_sma and 'sma_20' in df.columns:
-                    fig.add_trace(go.Scatter(x=x_data, y=df['sma_20'], line=dict(color='orange', width=1), name='SMA 20'), row=1, col=1)
+                    fig.add_trace(go.Scatter(
+                        x=x_data, y=df['sma_20'], 
+                        line=dict(color='orange', width=2, shape='spline'),
+                        name='SMA 20',
+                        mode='lines',
+                        hovertemplate='<b>SMA 20</b><br>Price: $%{y:.2f}<extra></extra>'
+                    ), row=1, col=1)
                 if show_ema and 'ema_20' in df.columns:
-                    fig.add_trace(go.Scatter(x=x_data, y=df['ema_20'], line=dict(color='blue', width=1), name='EMA 20'), row=1, col=1)
+                    fig.add_trace(go.Scatter(
+                        x=x_data, y=df['ema_20'], 
+                        line=dict(color='blue', width=2, shape='spline'),
+                        name='EMA 20',
+                        mode='lines',
+                        hovertemplate='<b>EMA 20</b><br>Price: $%{y:.2f}<extra></extra>'
+                    ), row=1, col=1)
                 if show_bb and 'bb_upper' in df.columns:
-                    fig.add_trace(go.Scatter(x=x_data, y=df['bb_upper'], line=dict(color='gray', width=1, dash='dot'), name='BB Upper'), row=1, col=1)
-                    fig.add_trace(go.Scatter(x=x_data, y=df['bb_lower'], line=dict(color='gray', width=1, dash='dot'), name='BB Lower', fill='tonexty'), row=1, col=1)
+                    fig.add_trace(go.Scatter(
+                        x=x_data, y=df['bb_upper'], 
+                        line=dict(color='rgba(150,150,150,0.5)', width=1, dash='dot', shape='spline'),
+                        name='BB Upper',
+                        mode='lines',
+                        hovertemplate='<b>BB Upper</b><br>$%{y:.2f}<extra></extra>'
+                    ), row=1, col=1)
+                    fig.add_trace(go.Scatter(
+                        x=x_data, y=df['bb_lower'], 
+                        line=dict(color='rgba(150,150,150,0.5)', width=1, dash='dot', shape='spline'),
+                        name='BB Lower', 
+                        fill='tonexty',
+                        fillcolor='rgba(150,150,150,0.1)',
+                        mode='lines',
+                        hovertemplate='<b>BB Lower</b><br>$%{y:.2f}<extra></extra>'
+                    ), row=1, col=1)
 
                 current_row = 2
                 
-                # 2. Volume
+                # 2. Volume with smooth bar animations
                 if show_volume:
-                    colors = ['red' if row['open'] - row['close'] >= 0 else 'green' for index, row in df.iterrows()]
+                    colors = ['#FF4444' if row['open'] - row['close'] >= 0 else '#00FF88' for index, row in df.iterrows()]
                     fig.add_trace(go.Bar(
                         x=x_data,
-                        y=df['volume'], marker_color=colors, showlegend=False, name='Volume'
+                        y=df['volume'], 
+                        marker_color=colors,
+                        marker_line_width=0,
+                        opacity=0.7,
+                        showlegend=False, 
+                        name='Volume',
+                        hovertemplate='<b>Volume</b><br>%{y:,.0f}<extra></extra>'
                     ), row=current_row, col=1)
                     current_row += 1
 
-                # 3. RSI
+                # 3. RSI with smooth curves
                 if show_rsi and 'rsi_14' in df.columns:
-                    fig.add_trace(go.Scatter(x=x_data, y=df['rsi_14'], line=dict(color='purple', width=1), name='RSI'), row=current_row, col=1)
-                    fig.add_hline(y=70, line_dash="dash", line_color="red", row=current_row, col=1)
-                    fig.add_hline(y=30, line_dash="dash", line_color="green", row=current_row, col=1)
+                    fig.add_trace(go.Scatter(
+                        x=x_data, y=df['rsi_14'], 
+                        line=dict(color='#B794F4', width=2, shape='spline'),
+                        name='RSI',
+                        mode='lines',
+                        fill='tozeroy',
+                        fillcolor='rgba(183, 148, 244, 0.1)',
+                        hovertemplate='<b>RSI</b><br>%{y:.2f}<extra></extra>'
+                    ), row=current_row, col=1)
+                    fig.add_hline(y=70, line_dash="dash", line_color="rgba(255,100,100,0.5)", line_width=1, row=current_row, col=1)
+                    fig.add_hline(y=30, line_dash="dash", line_color="rgba(100,255,100,0.5)", line_width=1, row=current_row, col=1)
                     current_row += 1
 
-                # 4. MACD
+                # 4. MACD with smooth animations
                 if show_macd and 'macd' in df.columns:
-                    fig.add_trace(go.Scatter(x=x_data, y=df['macd'], line=dict(color='blue', width=1), name='MACD'), row=current_row, col=1)
-                    fig.add_trace(go.Scatter(x=x_data, y=df['macd_signal'], line=dict(color='orange', width=1), name='Signal'), row=current_row, col=1)
-                    fig.add_trace(go.Bar(x=x_data, y=df['macd_hist'], name='Hist'), row=current_row, col=1)
+                    fig.add_trace(go.Scatter(
+                        x=x_data, y=df['macd'], 
+                        line=dict(color='#4299E1', width=2, shape='spline'),
+                        name='MACD',
+                        mode='lines',
+                        hovertemplate='<b>MACD</b><br>%{y:.4f}<extra></extra>'
+                    ), row=current_row, col=1)
+                    fig.add_trace(go.Scatter(
+                        x=x_data, y=df['macd_signal'], 
+                        line=dict(color='#ED8936', width=2, shape='spline'),
+                        name='Signal',
+                        mode='lines',
+                        hovertemplate='<b>Signal</b><br>%{y:.4f}<extra></extra>'
+                    ), row=current_row, col=1)
+                    # Histogram bars with color coding
+                    hist_colors = ['#00FF88' if val >= 0 else '#FF4444' for val in df['macd_hist']]
+                    fig.add_trace(go.Bar(
+                        x=x_data, y=df['macd_hist'],
+                        name='Hist',
+                        marker_color=hist_colors,
+                        marker_line_width=0,
+                        opacity=0.6,
+                        hovertemplate='<b>Histogram</b><br>%{y:.4f}<extra></extra>'
+                    ), row=current_row, col=1)
                     current_row += 1
 
+                # Update layout with smooth animations and transitions
                 fig.update_layout(
                     height=800 if rows > 2 else 600,
                     xaxis_rangeslider_visible=True,
@@ -338,10 +456,75 @@ def main():
                     plot_bgcolor='rgba(0,0,0,0)',
                     paper_bgcolor='rgba(0,0,0,0)',
                     margin=dict(l=20, r=20, t=40, b=20),
-                    legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+                    legend=dict(
+                        orientation="h", 
+                        yanchor="bottom", 
+                        y=1.02, 
+                        xanchor="right", 
+                        x=1,
+                        bgcolor='rgba(0,0,0,0.5)',
+                        bordercolor='rgba(255,255,255,0.2)',
+                        borderwidth=1
+                    ),
+                    # Smooth animations and transitions
+                    transition={
+                        'duration': 500,
+                        'easing': 'cubic-in-out'
+                    },
+                    hovermode='x unified',
+                    hoverlabel=dict(
+                        bgcolor='rgba(0,0,0,0.8)',
+                        font_size=13,
+                        font_family="Arial",
+                        font_color="white",
+                        bordercolor='rgba(255,255,255,0.3)'
+                    ),
+                    # Smooth drag and zoom
+                    dragmode='zoom',
                 )
                 
-                st.plotly_chart(fig, use_container_width=True)
+                # Add smooth animations to all traces
+                fig.update_traces(
+                    hoverinfo='all',
+                    hoverlabel=dict(namelength=-1)
+                )
+                
+                # Smooth axis transitions
+                fig.update_xaxes(
+                    showgrid=True,
+                    gridwidth=1,
+                    gridcolor='rgba(128,128,128,0.1)',
+                    showline=True,
+                    linewidth=1,
+                    linecolor='rgba(128,128,128,0.3)',
+                )
+                
+                fig.update_yaxes(
+                    showgrid=True,
+                    gridwidth=1,
+                    gridcolor='rgba(128,128,128,0.1)',
+                    showline=True,
+                    linewidth=1,
+                    linecolor='rgba(128,128,128,0.3)',
+                )
+                
+                # Display with animation configuration
+                st.plotly_chart(
+                    fig, 
+                    use_container_width=True,
+                    config={
+                        'displayModeBar': True,
+                        'displaylogo': False,
+                        'modeBarButtonsToRemove': ['lasso2d', 'select2d'],
+                        'toImageButtonOptions': {
+                            'format': 'png',
+                            'filename': f'{asset}_chart',
+                            'height': 1080,
+                            'width': 1920,
+                            'scale': 2
+                        }
+                    }
+                )
             else:
                 st.warning("No historical data available for plotting.")
 
